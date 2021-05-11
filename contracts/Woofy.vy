@@ -106,7 +106,7 @@ def approve(spender: address, amount: uint256) -> bool:
 
 
 @external
-def deposit(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
+def woof(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
     mint_amount: uint256 = min(amount, ERC20(YFI).balanceOf(msg.sender))
     assert ERC20(YFI).transferFrom(msg.sender, self, mint_amount)
     self._mint(receiver, mint_amount)
@@ -114,7 +114,7 @@ def deposit(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bo
 
 
 @external
-def withdraw(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
+def unwoof(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
     burn_amount: uint256 = min(amount, self.balanceOf[msg.sender])
     self._burn(msg.sender, burn_amount)
     assert ERC20(YFI).transfer(receiver, burn_amount)
