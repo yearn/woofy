@@ -54,7 +54,7 @@ def symbol() -> String[5]:
 @view
 @external
 def decimals() -> uint256:
-    return 9
+    return 12
 
 
 @internal
