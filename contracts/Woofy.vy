@@ -19,17 +19,15 @@ allowance: public(HashMap[address, HashMap[address, uint256]])
 balanceOf: public(HashMap[address, uint256])
 totalSupply: public(uint256)
 nonces: public(HashMap[address, uint256])
-
 DOMAIN_SEPARATOR: public(bytes32)
 DOMAIN_TYPE_HASH: constant(bytes32) = keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
 PERMIT_TYPE_HASH: constant(bytes32) = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)")
 
-yfi: public(ERC20)
+YFI: constant(address) = 0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e
 
 
 @external
 def __init__():
-    self.yfi = ERC20(0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e)
     self.DOMAIN_SEPARATOR = keccak256(
         concat(
             DOMAIN_TYPE_HASH,
@@ -109,8 +107,8 @@ def approve(spender: address, amount: uint256) -> bool:
 
 @external
 def deposit(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
-    mint_amount: uint256 = min(amount, self.yfi.balanceOf(msg.sender))
-    assert self.yfi.transferFrom(msg.sender, self, mint_amount)
+    mint_amount: uint256 = min(amount, ERC20(YFI).balanceOf(msg.sender))
+    assert ERC20(YFI).transferFrom(msg.sender, self, mint_amount)
     self._mint(receiver, mint_amount)
     return True
 
@@ -119,7 +117,7 @@ def deposit(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bo
 def withdraw(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
     burn_amount: uint256 = min(amount, self.balanceOf[msg.sender])
     self._burn(msg.sender, burn_amount)
-    assert self.yfi.transfer(receiver, burn_amount)
+    assert ERC20(YFI).transfer(receiver, burn_amount)
     return True
 
 

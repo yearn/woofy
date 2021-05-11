@@ -19,4 +19,4 @@ def woofy(Woofy, user):
 
 @pytest.fixture()
 def wifey(user, interface, woofy):
-    return interface.ERC20(woofy.yfi(), owner=user)
+    return interface.ERC20("0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e", owner=user)
