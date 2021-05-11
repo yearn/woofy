@@ -18,6 +18,11 @@ event Approval:
 allowance: public(HashMap[address, HashMap[address, uint256]])
 balanceOf: public(HashMap[address, uint256])
 totalSupply: public(uint256)
+nonces: public(HashMap[address, uint256])
+
+DOMAIN_SEPARATOR: public(bytes32)
+DOMAIN_TYPE_HASH: constant(bytes32) = keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+PERMIT_TYPE_HASH: constant(bytes32) = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)")
 
 yfi: public(ERC20)
 
@@ -25,6 +30,15 @@ yfi: public(ERC20)
 @external
 def __init__():
     self.yfi = ERC20(0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e)
+    self.DOMAIN_SEPARATOR = keccak256(
+        concat(
+            DOMAIN_TYPE_HASH,
+            keccak256(convert("Woofy", Bytes[5])),
+            keccak256(convert("1", Bytes[1])),
+            convert(chain.id, bytes32),
+            convert(self, bytes32)
+        )
+    )
 
 
 @view
@@ -106,4 +120,38 @@ def withdraw(amount: uint256 = MAX_UINT256) -> bool:
     burn_amount: uint256 = min(amount, self.balanceOf[msg.sender])
     self._burn(msg.sender, burn_amount)
     assert self.yfi.transfer(msg.sender, burn_amount)
+    return True
+
+
+
+
+@external
+def permit(owner: address, spender: address, amount: uint256, expiry: uint256, signature: Bytes[65]) -> bool:
+    assert owner != ZERO_ADDRESS  # dev: invalid owner
+    assert expiry == 0 or expiry >= block.timestamp  # dev: permit expired
+    nonce: uint256 = self.nonces[owner]
+    digest: bytes32 = keccak256(
+        concat(
+            b'\x19\x01',
+            self.DOMAIN_SEPARATOR,
+            keccak256(
+                concat(
+                    PERMIT_TYPE_HASH,
+                    convert(owner, bytes32),
+                    convert(spender, bytes32),
+                    convert(amount, bytes32),
+                    convert(nonce, bytes32),
+                    convert(expiry, bytes32),
+                )
+            )
+        )
+    )
+    # NOTE: signature is packed as r, s, v
+    r: uint256 = convert(slice(signature, 0, 32), uint256)
+    s: uint256 = convert(slice(signature, 32, 32), uint256)
+    v: uint256 = convert(slice(signature, 64, 1), uint256)
+    assert ecrecover(digest, v, r, s) == owner  # dev: invalid signature
+    self.allowance[owner][spender] = amount
+    self.nonces[owner] = nonce + 1
+    log Approval(owner, spender, amount)
     return True
