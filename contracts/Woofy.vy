@@ -108,21 +108,19 @@ def approve(spender: address, amount: uint256) -> bool:
 
 
 @external
-def deposit(amount: uint256 = MAX_UINT256) -> bool:
+def deposit(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
     mint_amount: uint256 = min(amount, self.yfi.balanceOf(msg.sender))
     assert self.yfi.transferFrom(msg.sender, self, mint_amount)
-    self._mint(msg.sender, mint_amount)
+    self._mint(receiver, mint_amount)
     return True
 
 
 @external
-def withdraw(amount: uint256 = MAX_UINT256) -> bool:
+def withdraw(amount: uint256 = MAX_UINT256, receiver: address = msg.sender) -> bool:
     burn_amount: uint256 = min(amount, self.balanceOf[msg.sender])
     self._burn(msg.sender, burn_amount)
-    assert self.yfi.transfer(msg.sender, burn_amount)
+    assert self.yfi.transfer(receiver, burn_amount)
     return True
-
-
 
 
 @external
